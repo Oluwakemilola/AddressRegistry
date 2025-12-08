@@ -5,5 +5,6 @@ export const {
     PORT,
     MONGODB_URL,
     JWT_SECRET,
-    JWT_EXPIRES_IN
+    JWT_EXPIRES_IN,
+    Google_Map_Api_Key
 } = process.env;
