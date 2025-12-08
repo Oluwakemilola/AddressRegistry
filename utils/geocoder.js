@@ -1,10 +1,15 @@
 import NodeGeocoder from "node-geocoder";
 
-
 const options = {
-  provider: "google",
+  provider: "openstreetmap",
+  httpAdapter: "https",
   formatter: null,
-  apiKey: process.env.Google_Map_Api_Key
+  fetchOptions: {
+    headers: {
+      "User-Agent": "AddressRegistry/1.0 (oluwakemilola02@gmail.com)"
+      
+    }
+  }
 };
 
 const geocoder = NodeGeocoder(options);
