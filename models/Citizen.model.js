@@ -10,6 +10,9 @@ const addressHistorySchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    city: {
+        type: String
+    },
     lga: {
         type:String,
     },
@@ -18,6 +21,15 @@ const addressHistorySchema = new mongoose.Schema({
     },
     housenumber:{
         type: String
+    },
+    formattedAddress: {
+        type: String
+    },
+    latitude: {
+        type: Number
+    },
+    longitude: {
+        type: Number
     },
     datemovedin: {
         type: Date,
@@ -34,17 +46,13 @@ const addressHistorySchema = new mongoose.Schema({
 
 
  const CitizenSchema = new mongoose.Schema({
-    fname: {
+    fullname: {
         type: String,
         required: true,
         trim: true,
 
     },
-    lname: {
-        type: String,
-        required: true,
-        trim: true
-    },
+
     email: {
         type:  String,
         required: true,

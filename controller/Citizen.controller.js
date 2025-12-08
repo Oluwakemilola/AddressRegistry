@@ -1,47 +1,13 @@
 import Citizen from "../models/Citizen.model.js";
+import geocoder from "../utils/geocoder.js";
 
-// 1. Register a new citizen
-export const registerCitizen = async (req, res) => {
-    try {
-        const { fname, lname, nin, email, password } = req.body;
-
-        if (!fname || !lname || !nin || !email || !password) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
-
-        const existingCitizen = await Citizen.findOne({ nin });
-        if (existingCitizen) {
-            return res.status(400).json({ message: "Citizen already exists" });
-        }
-
-        const citizen = await Citizen.create({
-            fname,
-            lname,
-            nin,
-            email,
-            password,
-            History: []
-        });
-
-        return res.status(201).json({
-            message: "Citizen registered successfully",
-            fname: citizen.fname
-        });
-
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-};
-
-
-
-// 2. Add new address = push into History array
 export const registerAddress = async (req, res) => {
     try {
         const {
             nin,
             country,
             state,
+            city,
             lga,
             street,
             housenumber,
@@ -49,33 +15,55 @@ export const registerAddress = async (req, res) => {
             datemovedout
         } = req.body;
 
-        if (!nin || !country || !state || !lga || !street || !housenumber || !datemovedin || !datemovedout) {
-            return res.status(400).json({ message: "All fields are required" });
+        if (!nin || !state || !datemovedin || !datemovedout) {
+            return res.status(400).json({
+                message: "nin, state, datemovedin and datemovedout are required"
+            });
         }
 
-        // find the citizen
         const citizen = await Citizen.findOne({ nin });
         if (!citizen) {
             return res.status(404).json({ message: "Citizen not found" });
         }
 
-        // Add new address to history
+        const fullAddress = `${housenumber || ""} ${street || ""}, ${city || ""}, ${state}, ${country || ""}`;
+        const geo = await geocoder.geocode(fullAddress);
+
+        let location = {};
+
+        if (geo && geo[0]) {
+            location = {
+                formattedAddress: geo[0].formattedAddress , // fallback
+                latitude: geo[0].latitude || null,
+                longitude: geo[0].longitude || null,
+            };
+        } else {
+            // If geocoder returns nothing, fallback to user input
+            location = {
+                formattedAddress: fullAddress,
+                latitude: null,
+                longitude: null,
+            };
+        }
+
         citizen.History.push({
             country,
             state,
+            city,
             lga,
             street,
             housenumber,
-            datemovedin,
-            datemovedout
+            datemovedin: new Date(datemovedin),
+            datemovedout: new Date(datemovedout),
+            ...location,
         });
 
         await citizen.save();
 
         return res.status(200).json({
             message: "Address added successfully",
-            fname: citizen.fname,
-            History: citizen.History
+            fullname: citizen.fullname,
+            history: citizen.History
         });
 
     } catch (error) {
@@ -84,8 +72,7 @@ export const registerAddress = async (req, res) => {
 };
 
 
-
-// 3. Get full address history
+// Get full address history
 export const getCitizenHistory = async (req, res) => {
     try {
         const { nin } = req.params;
@@ -98,7 +85,7 @@ export const getCitizenHistory = async (req, res) => {
 
         return res.status(200).json({
             message: "Address history retrieved",
-            fname: citizen.fname,
+            fullname: citizen.fullname,
             history: citizen.History
         });
 
