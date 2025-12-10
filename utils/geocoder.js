@@ -1,18 +1,24 @@
-import NodeGeocoder from "node-geocoder";
+import fetch from "node-fetch";
 
-const options = {
-  provider: "openstreetmap",
-  httpAdapter: "https",
-  formatter: null,
-  fetchOptions: {
+async function geocoder(address) {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+
+  const response = await fetch(url, {
     headers: {
-      "User-Agent": "AddressRegistry/1.0 (oluwakemilola02@gmail.com)"
-      
+      "User-Agent": "myapp/1.0 (oluwakemilola02@gmail.com)"
     }
-  }
-};
+  });
 
-const geocoder = NodeGeocoder(options);
+  const data = await response.json();
+
+  if (!data || data.length === 0) {
+    return null;
+  }
+
+  return {
+    latitude: parseFloat(data[0].lat),
+    longitude: parseFloat(data[0].lon),
+  };
+}
 
 export default geocoder;
-
