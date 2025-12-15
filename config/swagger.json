@@ -1,0 +1,180 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Citizen Address API",
+    "version": "1.0.0",
+    "description": "API to manage citizens and their address history"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000/api",
+      "description": "Local server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "UserSignUp": {
+        "type": "object",
+        "required": ["fullname", "nin", "email", "password"],
+        "properties": {
+          "fullname": { "type": "string" },
+          "nin": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" }
+        }
+      },
+      "UserSignIn": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+           "nin": { "type": "string" }, 
+          "country": { "type": "string" },
+          "state": { "type": "string" },
+          "city": { "type": "string" },
+          "lga": { "type": "string" },
+          "street": { "type": "string" },
+          "housenumber": { "type": "string" },
+          "datemovedin": { "type": "string", "format": "date" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/v1/signup": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Create a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UserSignUp" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully"
+          },
+          "400": {
+            "description": "Bad request / User already exists"
+          }
+        }
+      }
+    },
+    "/v1/signin": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "User login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UserSignIn" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful, returns JWT token"
+          },
+          "400": {
+            "description": "Bad request / Invalid credentials"
+          }
+        }
+      }
+    },
+    "/citizen/address": {
+      "post": {
+        "tags": ["Address"],
+        "summary": "Add a new address (append-only)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/Address" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Address added successfully" },
+          "400": { "description": "Missing required fields" },
+          "404": { "description": "Citizen not found" }
+        }
+      }
+    },
+    "/citizen/address/{addressId}": {
+      "patch": {
+        "tags": ["Address"],
+        "summary": "Edit an existing address",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "addressId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The ID of the address to edit"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/Address" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Address updated successfully" },
+          "404": { "description": "Address not found" }
+        }
+      }
+    },
+    "/citizen/history/{nin}": {
+      "get": {
+        "tags": ["Address"],
+        "summary": "Get full address history of a citizen",
+        "parameters": [
+          {
+            "name": "nin",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "NIN of the citizen"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Address history retrieved successfully" },
+          "404": { "description": "Citizen not found" }
+        }
+      }
+    },
+    "/citizen/address/current/{nin}": {
+      "get": {
+        "tags": ["Address"],
+        "summary": "Get current active address of a citizen",
+        "parameters": [
+          {
+            "name": "nin",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "NIN of the citizen"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Current address retrieved successfully" },
+          "404": { "description": "No active address found" }
+        }
+      }
+    }
+  }
+}

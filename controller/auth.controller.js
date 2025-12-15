@@ -5,7 +5,7 @@ import { JWT_EXPIRES_IN, JWT_SECRET } from "../config/env.js"
 
 export const signUp = async( req, res, next) => {
     try {
-        const {fullname, nin, email, password} = req.body;
+        const {fullname, nin, email, password,} = req.body;
 
         //To Check if any of the data is missing
         if(!fullname || !nin || !email || !password) {
@@ -13,6 +13,7 @@ export const signUp = async( req, res, next) => {
                 message: "All fields are required"
             })
         }
+        
 
         const existingUser = await Citizen.findOne({nin})
         if (existingUser) {

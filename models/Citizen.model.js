@@ -38,7 +38,7 @@ const addressHistorySchema = new mongoose.Schema({
 
     datemovedout: {
         type: Date,
-        required: true
+        // required: true
     }
 
 })
